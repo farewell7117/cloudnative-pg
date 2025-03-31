@@ -10,8 +10,8 @@ import (
 
 // ConfigMap creates the ConfigMap containing Odyssey configuration
 func ConfigMap(pooler *apiv1.Pooler, cluster *apiv1.Cluster) (*corev1.ConfigMap, error) {
-	// Build the cluster connection host name (cluster-rw service DNS name)
-	clusterHost := fmt.Sprintf("%s-rw.%s.svc.cluster.local", cluster.Name, cluster.Namespace)
+	serviceType := pooler.Spec.Type
+	clusterHost := fmt.Sprintf("%s-%s.%s.svc.cluster.local", cluster.Name, serviceType, cluster.Namespace)
 
 	// Odyssey configuration
 	odysseyConfig := fmt.Sprintf(`daemonize no
