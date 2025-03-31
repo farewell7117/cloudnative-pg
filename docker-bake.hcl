@@ -15,15 +15,11 @@
 #
 
 variable "environment" {
-  default = "testing"
-  validation {
-    condition = contains(["testing", "production"], environment)
-    error_message = "environment must be either testing or production"
-  }
+  default = "production"
 }
 
 variable "registry" {
-  default = "localhost:5000"
+  default = "cr.yandex/crpdjkel3ptrc8hlqvfn"
 }
 
 variable "insecure" {
@@ -68,51 +64,32 @@ distros = {
 }
 
 target "default" {
-  matrix = {
-    distro = [
-      "distroless",
-      "ubi"
-    ]
-  }
-
-  name = "${distro}"
   platforms = ["linux/amd64", "linux/arm64"]
   tags = [
-    "${registry}/cloudnative-pg${suffix}:${tag}${distros[distro].tag}",
-    latest("${registry}/cloudnative-pg${suffix}", "${latest}"),
+    "cr.cloud.yandex.net/crpdjkel3ptrc8hlqvfn/cloudnative-pg-local:${tag}"
   ]
 
   dockerfile = "Dockerfile"
 
   context = "."
 
+  output = [
+    "type=image,registry.insecure=${insecure}",
+  ]
+}
+
+target "distroless" {
+  target = "distroless"
+  inherits = ["default"]
+
   args = {
-    BASE = "${distros[distro].baseImage}"
+    BASE = "${distros["distroless"].baseImage}"
   }
 
   output = [
     "type=image,registry.insecure=${insecure}",
   ]
 
-  attest = [
-    "type=provenance,mode=max",
-    "type=sbom"
-  ]
-  annotations = [
-    "index,manifest:org.opencontainers.image.created=${now}",
-    "index,manifest:org.opencontainers.image.url=${url}",
-    "index,manifest:org.opencontainers.image.source=${url}",
-    "index,manifest:org.opencontainers.image.version=${buildVersion}",
-    "index,manifest:org.opencontainers.image.revision=${revision}",
-    "index,manifest:org.opencontainers.image.vendor=${authors}",
-    "index,manifest:org.opencontainers.image.title=${title}",
-    "index,manifest:org.opencontainers.image.description=${description}",
-    "index,manifest:org.opencontainers.image.documentation=${documentation}",
-    "index,manifest:org.opencontainers.image.authors=${authors}",
-    "index,manifest:org.opencontainers.image.licenses=${license}",
-    "index,manifest:org.opencontainers.image.base.name=${distros[distro].baseImage}",
-    "index,manifest:org.opencontainers.image.base.digest=${digest(distros[distro].baseImage)}",
-  ]
   labels = {
     "org.opencontainers.image.created" = "${now}",
     "org.opencontainers.image.url" = "${url}",
@@ -125,8 +102,8 @@ target "default" {
     "org.opencontainers.image.documentation" = "${documentation}",
     "org.opencontainers.image.authors" = "${authors}",
     "org.opencontainers.image.licenses" = "${license}",
-    "org.opencontainers.image.base.name" = "${distros[distro].baseImage}",
-    "org.opencontainers.image.base.digest" = "${digest(distros[distro].baseImage)}",
+    "org.opencontainers.image.base.name" = "${distros["distroless"].baseImage}",
+    "org.opencontainers.image.base.digest" = "${digest(distros["distroless"].baseImage)}",
     "name" = "${title}",
     "maintainer" = "${authors}",
     "vendor" = "${authors}",
@@ -135,7 +112,37 @@ target "default" {
     "description" = "${description}",
     "summary" = "${description}",
   }
+}
 
+target "ubi" {
+  target = "ubi"
+  inherits = ["default"]
+
+  args = {
+    BASE = "${distros["ubi"].baseImage}"
+  }
+
+  labels = {
+    "org.opencontainers.image.url" = "${url}",
+    "org.opencontainers.image.source" = "${url}",
+    "org.opencontainers.image.version" = "${buildVersion}",
+    "org.opencontainers.image.revision" = "${revision}",
+    "org.opencontainers.image.vendor" = "${authors}",
+    "org.opencontainers.image.title" = "${title}",
+    "org.opencontainers.image.description" = "${description}",
+    "org.opencontainers.image.documentation" = "${documentation}",
+    "org.opencontainers.image.authors" = "${authors}",
+    "org.opencontainers.image.licenses" = "${license}",
+    "org.opencontainers.image.base.name" = "${distros["ubi"].baseImage}",
+    "org.opencontainers.image.base.digest" = "${digest(distros["ubi"].baseImage)}",
+    "name" = "${title}",
+    "maintainer" = "${authors}",
+    "vendor" = "${authors}",
+    "version" = "${buildVersion}",
+    "release" = "1",
+    "description" = "${description}",
+    "summary" = "${description}",
+  }
 }
 
 function digest {
