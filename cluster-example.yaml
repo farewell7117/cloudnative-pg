@@ -1,0 +1,26 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+spec:
+  instances: 3
+
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      secret:
+        name: app-secret
+
+  storage:
+    size: 1Gi
+
+---
+apiVersion: v1
+data:
+  username: YXBw
+  password: cGFzc3dvcmQ=
+kind: Secret
+metadata:
+  name: app-secret
+type: kubernetes.io/basic-auth
