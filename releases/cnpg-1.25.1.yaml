@@ -8717,6 +8717,7 @@ spec:
         - name: MONITORING_QUERIES_CONFIGMAP
           value: cnpg-default-monitoring
         image: cr.yandex/crpdjkel3ptrc8hlqvfn/cloudnative-pg-local:dev
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /readyz

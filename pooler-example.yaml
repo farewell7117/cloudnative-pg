@@ -18,4 +18,8 @@ spec:
       max_client_conn: "1000"
       default_pool_size: "10"
   odyssey:
-    enabled: true
+    workers: 2
+    resolvers: 2
+    databaseName: "app"
+    databaseUser: "app"
+    password: "password"
