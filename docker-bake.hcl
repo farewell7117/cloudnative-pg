@@ -66,7 +66,7 @@ distros = {
 target "default" {
   platforms = ["linux/amd64", "linux/arm64"]
   tags = [
-    "cr.cloud.yandex.net/crpdjkel3ptrc8hlqvfn/cloudnative-pg-local:${tag}"
+    "cr.yandex/crpdjkel3ptrc8hlqvfn/cloudnative-pg-local:${tag}"
   ]
 
   dockerfile = "Dockerfile"
