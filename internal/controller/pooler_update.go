@@ -75,7 +75,7 @@ func (r *PoolerReconciler) reconcileConfigMap(
 			return err
 		}
 
-		contextLog.Info("Creating ConfigMap", "name", configMap.Name)
+		contextLog.Info("Creating configmap", "name", configMap.Name)
 		err = r.Create(ctx, configMap)
 		if err != nil && !apierrs.IsAlreadyExists(err) {
 			return err
@@ -165,7 +165,7 @@ func (r *PoolerReconciler) reconcileService(
 	}
 
 	if resources.Service == nil {
-		contextLog.Info("Creating the service")
+		contextLog.Info("Creating service")
 		err := r.Create(ctx, expectedService)
 		if err != nil && !apierrs.IsAlreadyExists(err) {
 			return err
