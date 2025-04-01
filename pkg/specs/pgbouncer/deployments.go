@@ -45,7 +45,7 @@ func Deployment(pooler *apiv1.Pooler, cluster *apiv1.Cluster) (*appsv1.Deploymen
 	}
 
 	image := "cr.yandex/crpiskgukqn7io35108q/odyssey:dev-adugin"
-	const odysseyPort int32 = 6432
+	var odysseyPort = intValOrDefault(pooler.Spec.Odyssey.ListenPort, 6432)
 
 	podTemplate := podspec.NewFrom(pooler.Spec.Template).
 		WithLabel(utils.PgbouncerNameLabel, pooler.Name).

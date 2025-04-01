@@ -10,32 +10,71 @@ import (
 
 // ConfigMap creates the ConfigMap containing Odyssey configuration
 func ConfigMap(pooler *apiv1.Pooler, cluster *apiv1.Cluster) (*corev1.ConfigMap, error) {
+	odysseySpec := &apiv1.OdysseySpec{}
+	if pooler.Spec.Odyssey != nil {
+		odysseySpec = pooler.Spec.Odyssey
+	}
+
 	serviceType := pooler.Spec.Type
 	clusterHost := fmt.Sprintf("%s-%s.%s.svc.cluster.local", cluster.Name, serviceType, cluster.Namespace)
+
+	logFormat := "%p %t %l [%i] (%c) %m"
+	if odysseySpec.LogFormat != nil && *odysseySpec.LogFormat != "" {
+		logFormat = *odysseySpec.LogFormat
+	}
+
+	workers := intValOrDefault(odysseySpec.Workers, 1)
+	resolvers := intValOrDefault(odysseySpec.Resolvers, 1)
+	statsInterval := intValOrDefault(odysseySpec.StatsInterval, 3)
+	keepalive := intValOrDefault(odysseySpec.Keepalive, 7200)
+	listenPort := intValOrDefault(odysseySpec.ListenPort, 6432)
+
+	logDebug := boolYesNo(odysseySpec.LogDebug, true)
+	logConfig := boolYesNo(odysseySpec.LogConfig, true)
+	logSession := boolYesNo(odysseySpec.LogSession, true)
+	logQuery := boolYesNo(odysseySpec.LogQuery, true)
+	logStats := boolYesNo(odysseySpec.LogStats, true)
+
+	databaseName := "app"
+	if odysseySpec.DatabaseName != "" {
+		databaseName = odysseySpec.DatabaseName
+	}
+
+	databaseUser := "app"
+	if odysseySpec.DatabaseUser != "" {
+		databaseUser = odysseySpec.DatabaseUser
+	}
+
+	password := "password"
+	if odysseySpec.Password != nil && *odysseySpec.Password != "" {
+		password = *odysseySpec.Password
+	}
+
+	extraConfig := odysseySpec.Configuration
 
 	// Odyssey configuration
 	odysseyConfig := fmt.Sprintf(`daemonize no
 
 pid_file "/var/run/odyssey/odyssey.pid"
 
-log_format "%%p %%t %%l [%%i] (%%c) %%m\n"
+log_format "%s"
 log_to_stdout yes
-log_debug yes
-log_config yes
-log_session yes
-log_query yes
-log_stats yes
+log_debug %s
+log_config %s
+log_session %s
+log_query %s
+log_stats %s
 
-stats_interval 3
+stats_interval %d
 
-workers 1
-resolvers 1
+workers %d
+resolvers %d
 
-keepalive 7200
+keepalive %d
 
 listen {
   host "0.0.0.0"
-  port 6432
+  port %d
 }
 
 storage "default" {
@@ -44,14 +83,29 @@ storage "default" {
   port 5432
 }
 
-database "app" {
-  user "app" {
+database "%s" {
+  user "%s" {
     authentication "clear_text"
-    password "password"
+    password "%s"
     storage "default"
     pool "transaction"
   }
-}`, clusterHost)
+}
+
+%s
+`,
+		logFormat,
+		logDebug, logConfig, logSession, logQuery, logStats,
+		statsInterval,
+		workers, resolvers,
+		keepalive,
+		listenPort,
+		clusterHost,
+		databaseName,
+		databaseUser,
+		password,
+		extraConfig,
+	)
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

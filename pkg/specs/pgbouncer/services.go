@@ -35,7 +35,7 @@ func Service(pooler *apiv1.Pooler, cluster *apiv1.Cluster) (*corev1.Service, err
 	}
 
 	// Define the Odyssey port
-	const odysseyPort int32 = 6432
+	var odysseyPort = intValOrDefault(pooler.Spec.Odyssey.ListenPort, 6432)
 
 	serviceTemplate := servicespec.NewFrom(pooler.Spec.ServiceTemplate).
 		WithLabel(utils.PgbouncerNameLabel, pooler.Name).
