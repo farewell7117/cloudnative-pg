@@ -304,9 +304,61 @@ spec:
                 description: The Odyssey configuration
                 properties:
                   configuration:
+                    description: Catch-all for any additional or custom Odyssey config
+                      lines
                     type: string
-                  enabled:
+                  databaseName:
+                    default: app
+                    description: Database name that Odyssey should route to
+                    type: string
+                  databaseUser:
+                    default: app
+                    description: Database user
+                    type: string
+                  keepalive:
+                    description: Session keepalive interval (seconds)
+                    format: int32
+                    type: integer
+                  listenPort:
+                    default: 6432
+                    description: Odyssey listening port
+                    format: int32
+                    type: integer
+                  logConfig:
+                    description: If true, log configuration details
                     type: boolean
+                  logDebug:
+                    description: If true, enable debug logging
+                    type: boolean
+                  logFormat:
+                    description: The format used for logging
+                    type: string
+                  logQuery:
+                    description: If true, log queries
+                    type: boolean
+                  logSession:
+                    description: If true, log session-related details
+                    type: boolean
+                  logStats:
+                    description: If true, log statistics
+                    type: boolean
+                  password:
+                    description: |-
+                      Password for the default "app" user
+                      (Note: for production usage, consider storing credentials in a Secret)
+                    type: string
+                  resolvers:
+                    description: Number of resolver processes
+                    format: int32
+                    type: integer
+                  statsInterval:
+                    description: Interval in seconds between sending and logging statistics
+                    format: int32
+                    type: integer
+                  workers:
+                    description: Number of worker processes Odyssey should spawn
+                    format: int32
+                    type: integer
                 type: object
               pgbouncer:
                 description: The PgBouncer configuration
