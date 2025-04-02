@@ -40,11 +40,7 @@ func (r *PoolerReconciler) updateOwnedObjects(
 	pooler *apiv1.Pooler,
 	resources *poolerManagedResources,
 ) error {
-	if err := r.updateServiceAccount(ctx, pooler, resources); err != nil {
-		return err
-	}
-
-	if err := r.updateRBAC(ctx, pooler, resources); err != nil {
+	if err := r.reconcileConfigMap(ctx, pooler, resources); err != nil {
 		return err
 	}
 
@@ -56,7 +52,39 @@ func (r *PoolerReconciler) updateOwnedObjects(
 		return err
 	}
 
-	return createOrPatchPodMonitor(ctx, r.Client, r.DiscoveryClient, pgbouncer.NewPoolerPodMonitorManager(pooler))
+	return nil
+}
+
+// reconcileConfigMap creates the ConfigMap if it doesn't exist
+// Since we treat the config as immutable, we don't update existing ConfigMaps
+func (r *PoolerReconciler) reconcileConfigMap(
+	ctx context.Context,
+	pooler *apiv1.Pooler,
+	resources *poolerManagedResources,
+) error {
+	contextLog := log.FromContext(ctx)
+
+	// Create if missing
+	if resources.ConfigMap == nil {
+		configMap, err := pgbouncer.ConfigMap(pooler, resources.Cluster)
+		if err != nil {
+			return err
+		}
+
+		if err := ctrl.SetControllerReference(pooler, configMap, r.Scheme); err != nil {
+			return err
+		}
+
+		contextLog.Info("Creating configmap", "name", configMap.Name)
+		err = r.Create(ctx, configMap)
+		if err != nil && !apierrs.IsAlreadyExists(err) {
+			return err
+		}
+		resources.ConfigMap = configMap
+	}
+
+	// If ConfigMap exists, do nothing as we consider it immutable
+	return nil
 }
 
 // updateDeployment update the deployment or create it when needed
@@ -137,7 +165,7 @@ func (r *PoolerReconciler) reconcileService(
 	}
 
 	if resources.Service == nil {
-		contextLog.Info("Creating the service")
+		contextLog.Info("Creating service")
 		err := r.Create(ctx, expectedService)
 		if err != nil && !apierrs.IsAlreadyExists(err) {
 			return err

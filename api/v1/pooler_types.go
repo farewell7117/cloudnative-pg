@@ -77,6 +77,10 @@ type PoolerSpec struct {
 	// The PgBouncer configuration
 	PgBouncer *PgBouncerSpec `json:"pgbouncer"`
 
+	// The Odyssey configuration
+	// +optional
+	Odyssey *OdysseySpec `json:"odyssey,omitempty"`
+
 	// The deployment strategy to use for pgbouncer to replace existing pods with new ones
 	// +optional
 	DeploymentStrategy *appsv1.DeploymentStrategy `json:"deploymentStrategy,omitempty"`
@@ -185,6 +189,73 @@ type PgBouncerSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	Paused *bool `json:"paused,omitempty"`
+}
+
+// OdysseySpec defines how to configure Odyssey
+type OdysseySpec struct {
+	// Number of worker processes Odyssey should spawn
+	// +optional
+	Workers *int32 `json:"workers,omitempty"`
+
+	// Number of resolver processes
+	// +optional
+	Resolvers *int32 `json:"resolvers,omitempty"`
+
+	// Interval in seconds between sending and logging statistics
+	// +optional
+	StatsInterval *int32 `json:"statsInterval,omitempty"`
+
+	// Session keepalive interval (seconds)
+	// +optional
+	Keepalive *int32 `json:"keepalive,omitempty"`
+
+	// If true, enable debug logging
+	// +optional
+	LogDebug *bool `json:"logDebug,omitempty"`
+
+	// If true, log configuration details
+	// +optional
+	LogConfig *bool `json:"logConfig,omitempty"`
+
+	// If true, log session-related details
+	// +optional
+	LogSession *bool `json:"logSession,omitempty"`
+
+	// If true, log queries
+	// +optional
+	LogQuery *bool `json:"logQuery,omitempty"`
+
+	// If true, log statistics
+	// +optional
+	LogStats *bool `json:"logStats,omitempty"`
+
+	// The format used for logging
+	// +optional
+	LogFormat *string `json:"logFormat,omitempty"`
+
+	// Odyssey listening port
+	// +kubebuilder:default:=6432
+	// +optional
+	ListenPort *int32 `json:"listenPort,omitempty"`
+
+	// Database name that Odyssey should route to
+	// +kubebuilder:default:="app"
+	// +optional
+	DatabaseName string `json:"databaseName,omitempty"`
+
+	// Database user
+	// +kubebuilder:default:="app"
+	// +optional
+	DatabaseUser string `json:"databaseUser,omitempty"`
+
+	// Password for the default "app" user
+	// (Note: for production usage, consider storing credentials in a Secret)
+	// +optional
+	Password *string `json:"password,omitempty"`
+
+	// Catch-all for any additional or custom Odyssey config lines
+	// +optional
+	Configuration string `json:"configuration,omitempty"`
 }
 
 // PoolerStatus defines the observed state of Pooler
