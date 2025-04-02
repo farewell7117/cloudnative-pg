@@ -42,12 +42,20 @@ func ConfigMap(pooler *apiv1.Pooler, cluster *apiv1.Cluster) (*corev1.ConfigMap,
 
 	databaseUser := "app"
 	if odysseySpec.DatabaseUser != "" {
-		databaseUser = odysseySpec.DatabaseUser
+		decodedUsername, err := decodeBase64(odysseySpec.DatabaseUser)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode database user: %w", err)
+		}
+		databaseUser = decodedUsername
 	}
 
 	password := "password"
 	if odysseySpec.Password != nil && *odysseySpec.Password != "" {
-		password = *odysseySpec.Password
+		decodedPassword, err := decodeBase64(*odysseySpec.Password)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode password: %w", err)
+		}
+		password = decodedPassword
 	}
 
 	extraConfig := odysseySpec.Configuration
